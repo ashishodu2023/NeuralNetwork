@@ -4,7 +4,7 @@ from FullyConnectedLayer import FCLayer
 from ActivationLayer import ActivationLayer
 from SoftmaxLayer import SoftmaxLayer
 from Activations import relu, relu_prime
-from Losses import sse, sse_prime, mse, mse_prime
+from Losses import sse, sse_prime, mse, mse_prime,sparse_categorical_crossentropy,sparse_categorical_crossentropy_prime
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -42,6 +42,7 @@ def main():
 
         loss /= len(X_train)
         print('%d/%d, Loss=%f' % (epoch + 1, epochs, loss))
+    print()
 
 
     # Confusion Matrix
@@ -66,12 +67,14 @@ def main():
 
     ratio = sum([np.argmax(y) == np.argmax(predict(network, x)) for x, y in zip(X_train, y_train)]) / len(X_train)
     error = sum([mse(y, predict(network, x)) for x, y in zip(X_train, y_train)]) / len(X_train)
-    print('ratio: %.2f' % ratio)
-    print('mse: %.4f' % error)
+    print('Ratio: %.2f' % ratio)
+    print('MSE: %.4f' % error)
+    print()
 
     y = pd.Series([2, 0, 2, 2, 0, 1, 1, 2, 2, 0, 1, 2], name='Actual')
     y_pred = pd.Series([0, 0, 2, 1, 0, 2, 1, 0, 2, 0, 2, 2], name='Predicted')
     df_confusion = pd.crosstab(y, y_pred, rownames=['Actual'], colnames=['Predicted'], margins=True)
+    print(df_confusion)
 
     # df_confusion = pd.crosstab(y, y_pred)
     plot_confusion_matrix(df_confusion)
