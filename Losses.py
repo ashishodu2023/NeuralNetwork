@@ -20,20 +20,17 @@ def sse_prime(y_true, y_pred):
     return y_pred - y_true
 
 
-def sparse_categorical_crossentropy(y_true, y_pred):
-    # convert true labels to one-hot encoding
-    y_true_onehot = np.zeros_like(y_pred)
-    y_true_onehot[np.arange(len(y_true)), y_true] = 1
-    loss = -np.mean(np.sum(y_true_onehot * np.log(y_pred), axis=-1))
+def cross_entropy_loss(y_true, y_pred):
+    E = 1e-15  # Small constant to avoid numerical instability (log(0))
+    y_pred = np.clip(y_pred, E, 1 - E)  # Clip to avoid log(0)
+    # Ensure y_true is a numpy array
+    y_true = np.array(y_true)
+    # Calculate cross-entropy loss
+    loss = -np.sum(y_true * np.log(y_pred)) / y_true.shape[0]
     return loss
 
-
-def sparse_categorical_crossentropy_prime(y_true, y_pred):
-    # Convert true labels to one-hot encoding
-    y_true_onehot = np.zeros_like(y_pred)
-    y_true_onehot[np.arange(len(y_true)), y_true] = 1
-
-    # Calculate derivative
-    derivative = -(y_true_onehot - y_pred) / len(y_true)
-
-    return derivative
+def cross_entropy_loss_prime(y_true, y_pred):
+    E = 1e-5  # Small constant to avoid numerical instability (log(0))
+    y_pred = np.clip(y_pred, E, 1 - E)  # Clip to avoid log(0)
+    loss = -y_true / y_pred
+    return loss
