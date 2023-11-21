@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def binary_to_one_hot(binary_sequence, label):
+def binary_to_one_hot(label):
     # Convert the binary sequence to a one-hot encoding
     one_hot_encoding = [0] * 10
     one_hot_encoding[label] = 1.
@@ -17,7 +17,7 @@ with open('file.txt', 'r') as file:
 labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] * (len(lines) // 10)
 
 # Convert sequences to one-hot encoding
-one_hot_data = [binary_to_one_hot(line.strip(), label) for line, label in zip(lines, labels)]
+one_hot_data = [binary_to_one_hot(label) for line, label in zip(lines, labels)]
 
 # Split data into training and testing sets
 split_ratio = 0.8  # 80% training, 20% testing
@@ -34,6 +34,8 @@ test_labels = labels[split_index:]
 train_data_np = np.array(train_data)
 test_data_np = np.array(test_data)
 
+print(train_data_np[:5])
+print(train_labels[:5])
 # Save NumPy arrays to .npy files
 np.save('train/X_train.npy', train_data_np)
 np.save('test/X_test.npy', test_data_np)

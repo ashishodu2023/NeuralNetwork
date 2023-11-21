@@ -3,103 +3,134 @@ import numpy as np
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-def softmax(x):
-    exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-    return exp_x / np.sum(exp_x, axis=1, keepdims=True)
-
 def sigmoid_derivative(x):
     return x * (1 - x)
 
-def cross_entropy_loss(y, y_pred):
-    return -np.sum(y * np.log(y_pred + 1e-15)) / len(y)
+def softmax(x):
+    exp_values = np.exp(x - np.max(x, axis=1, keepdims=True))
+    return exp_values / np.sum(exp_values, axis=1, keepdims=True)
 
-def initialize_parameters(input_size, hidden_size, output_size):
+def initialize_weights(input_size, hidden_size, output_size):
     np.random.seed(42)
-    weights_input_hidden = np.random.rand(input_size, hidden_size)
-    weights_hidden_output = np.random.rand(hidden_size, output_size)
-    bias_hidden = np.zeros((1, hidden_size))
-    bias_output = np.zeros((1, output_size))
-    return weights_input_hidden, weights_hidden_output, bias_hidden, bias_output
+    weights_input_hidden = np.random.randn(input_size, hidden_size)
+    weights_hidden_output = np.random.randn(hidden_size, output_size)
+    return weights_input_hidden, weights_hidden_output
 
-def forward_propagation(X, weights_input_hidden, weights_hidden_output, bias_hidden, bias_output):
-    hidden_layer_input = np.dot(X, weights_input_hidden) + bias_hidden
+def forward_propagation(X, weights_input_hidden, weights_hidden_output):
+    hidden_layer_input = np.dot(X, weights_input_hidden)
     hidden_layer_output = sigmoid(hidden_layer_input)
 
-    output_layer_input = np.dot(hidden_layer_output, weights_hidden_output) + bias_output
+    output_layer_input = np.dot(hidden_layer_output, weights_hidden_output)
     output_layer_output = softmax(output_layer_input)
 
     return hidden_layer_output, output_layer_output
 
-def backward_propagation(X, y, hidden_layer_output, output_layer_output,
-                         weights_hidden_output, bias_hidden, bias_output, learning_rate):
-    weights_input_hidden = 0
+def backward_propagation(X, y, hidden_layer_output, output_layer_output, weights_hidden_output):
     output_error = output_layer_output - y
-    hidden_error = output_error.dot(weights_hidden_output.T) * sigmoid_derivative(hidden_layer_output)
+    output_delta = output_error
 
-    weights_hidden_output -= hidden_layer_output.T.dot(output_error) * learning_rate
-    bias_output -= np.sum(output_error, axis=0, keepdims=True) * learning_rate
+    hidden_error = output_delta.dot(weights_hidden_output.T)
+    hidden_delta = hidden_error * sigmoid_derivative(hidden_layer_output)
 
-    weights_input_hidden -= X.T.dot(hidden_error) * learning_rate
-    bias_hidden -= np.sum(hidden_error, axis=0, keepdims=True) * learning_rate
+    return hidden_delta, output_delta
 
-def train(X, y, hidden_size, output_size, epochs, learning_rate, batch_size):
+def update_weights(X, hidden_layer_output, output_delta, hidden_delta, weights_input_hidden, weights_hidden_output, learning_rate, clip_value=1.0):
+    grad_output_weights = hidden_layer_output.T.dot(output_delta)
+    grad_input_weights = X.T.dot(hidden_delta)
+
+    # Gradient Clipping
+    grad_output_weights = np.clip(grad_output_weights, -clip_value, clip_value)
+    grad_input_weights = np.clip(grad_input_weights, -clip_value, clip_value)
+
+    weights_hidden_output -= grad_output_weights * learning_rate
+    weights_input_hidden -= grad_input_weights * learning_rate
+
+    return weights_input_hidden, weights_hidden_output
+
+
+def normalize_data(X):
+    mean = np.mean(X, axis=0)
+    std = np.std(X, axis=0)
+
+    # Check for zero standard deviation
+    std[std == 0] = 1.0
+
+    # Check for NaN values in the input data
+    if np.isnan(X).any():
+        raise ValueError("Input data contains NaN values.")
+
+    normalized_X = (X - mean) / std
+
+    return normalized_X
+
+
+def encode_labels(y):
+    num_classes = len(np.unique(y))
+    encoded_labels = np.eye(num_classes)[y]
+    return encoded_labels
+
+def train_neural_network(X, y, hidden_size, output_size, epochs, learning_rate):
     input_size = X.shape[1]
-    weights_input_hidden, weights_hidden_output, bias_hidden, bias_output = initialize_parameters(
-        input_size, hidden_size, output_size)
-
-    num_batches = len(X) // batch_size
+    weights_input_hidden, weights_hidden_output = initialize_weights(input_size, hidden_size, output_size)
 
     for epoch in range(epochs):
-        for batch in range(num_batches):
-            start = batch * batch_size
-            end = (batch + 1) * batch_size
-            X_batch = X[start:end]
-            y_batch = y[start:end]
+        # Forward Propagation
+        hidden_layer_output, output_layer_output = forward_propagation(X, weights_input_hidden, weights_hidden_output)
 
-            hidden_layer_output, output_layer_output = forward_propagation(
-                X_batch, weights_input_hidden, weights_hidden_output, bias_hidden, bias_output)
+        # Backward Propagation
+        hidden_delta, output_delta = backward_propagation(X, y, hidden_layer_output, output_layer_output, weights_hidden_output)
 
-            backward_propagation(X_batch, y_batch, hidden_layer_output, output_layer_output,
-                                weights_hidden_output, bias_hidden, bias_output, learning_rate)
+        # Update Weights
+        weights_input_hidden, weights_hidden_output = update_weights(X, hidden_layer_output, output_delta, hidden_delta, weights_input_hidden, weights_hidden_output, learning_rate)
 
+        # Print loss every 100 epochs
         if epoch % 100 == 0:
             loss = cross_entropy_loss(y, output_layer_output)
             print(f"Epoch {epoch}, Loss: {loss}")
 
-    return weights_input_hidden, weights_hidden_output, bias_hidden, bias_output
+    return weights_input_hidden, weights_hidden_output
+def cross_entropy_loss(y_true, y_pred):
+    epsilon = 1e-15
+    y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
+    m = y_true.shape[0]
+    loss = -np.sum(y_true * np.log(y_pred + epsilon)) / m
+    return loss
 
-def predict(X, weights_input_hidden, weights_hidden_output, bias_hidden, bias_output):
-    _, output = forward_propagation(X, weights_input_hidden, weights_hidden_output, bias_hidden, bias_output)
-    return np.argmax(output, axis=1)
+# Example usage:
+# Assuming 'X' is your input data and 'label' is your multilabel output data (between 0 and 9)
+# Adjust 'hidden_size', 'output_size', 'epochs', and 'learning_rate' based on your requirements
 
-# Load the data
-X_train = np.load('train/X_train.npy')
-y_train = np.load('train/y_train.npy')
+# Generate some example data
+X = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 1, 0, 0, 0, 0, 0]])
 
-# Convert labels to one-hot encoding
-num_classes = 10
-y_train_one_hot = np.eye(num_classes)[y_train]
+label = np.array([0, 1, 2, 3, 4])  # Labels between 0 and 9
 
-# Set random seed for reproducibility
-np.random.seed(42)
+# Normalize the input data
+X_normalized = normalize_data(X)
 
-# Set hyperparameters
-input_size = X_train.shape[1]
-hidden_size = 32
-output_size = 10
-learning_rate = 0.01
-epochs = 100
-batch_size = 32
+# One-hot encode the labels
+y_one_hot = encode_labels(label)
 
-# Initialize weights
-weights_input_hidden = np.random.rand(input_size, hidden_size)
-weights_hidden_output = np.random.rand(hidden_size, output_size)
+# Train the neural network
+hidden_size = 8  # Increased hidden size
+output_size = y_one_hot.shape[1]
+epochs = 3000  # Increased number of epochs
+learning_rate = 0.0001  # Adjusted learning rate
 
-weights_input_hidden, weights_hidden_output, bias_hidden, bias_output = train(
-    X_train, y_train_one_hot, hidden_size, output_size, epochs, learning_rate, batch_size)
+trained_weights_input_hidden, trained_weights_hidden_output = train_neural_network(X_normalized, y_one_hot, hidden_size, output_size, epochs, learning_rate)
 
-# Make predictions
-X_test = np.random.rand(10, X_train.shape[1])
-predictions = predict(X_test, weights_input_hidden, weights_hidden_output, bias_hidden, bias_output)
+print("NaN values in X:", np.isnan(X).any())
+print("Infinite values in X:", np.isinf(X).any())
+print("NaN values in y_one_hot:", np.isnan(y_one_hot).any())
+print("Infinite values in y_one_hot:", np.isinf(y_one_hot).any())
 
-print("Predictions:", predictions)
+
+# Perform predictions
+_, predictions = forward_propagation(X_normalized, trained_weights_input_hidden, trained_weights_hidden_output)
+predicted_labels = np.argmax(predictions, axis=1)
+print("True Labels:", label)
+print("Predicted Labels:", predicted_labels)

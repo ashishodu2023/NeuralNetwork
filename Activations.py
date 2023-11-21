@@ -1,19 +1,10 @@
 import numpy as np
-
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-def sigmoid_prime(x):
-    return np.exp(-x) / (1 + np.exp(-x))**2
+def sigmoid_derivative(x):
+    return x * (1 - x)
 
-def tanh(x):
-    return np.tanh(x)
-
-def tanh_prime(x):
-    return 1 - np.tanh(x)**2
-
-def relu(x):
-    return np.maximum(x, 0)
-
-def relu_prime(x):
-    return np.array(x >= 0).astype('int')
+def softmax(x):
+    exp_values = np.exp(x - np.max(x, axis=1, keepdims=True))
+    return exp_values / np.sum(exp_values, axis=1, keepdims=True)
