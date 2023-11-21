@@ -1,73 +1,45 @@
 import numpy as np
 
-data_str = """
-00000000000011000000000000000000
-00000000000111101000000000000000
-00000000001111111111000000000000
-00000000001111111111100000000000
-00000000011111111111111000000000
-00000000011111111111111110000000
-00000000011111110011111111000000
-00000000111111100000111111000000
-00000000111110000000011111000000
-00000001111110000000011111000000
-00000001111100000000001111000000
-00000001111000000000011111000000
-00000001111000000000001111000000
-00000001111000000000001111000000
-00000001111000000000001111000000
-00000001111000000000001111000000
-00000001110000000000001111000000
-00000001110000000000001111000000
-00000011110000000000001111000000
-00000001110000000000011111000000
-00000001110000000000001111000000
-00000001111000000000011111000000
-00000001111000000000011111000000
-00000001111000000001111110000000
-00000001111000000001111100000000
-00000001111100000011111100000000
-00000000111110000111111000000000
-00000000011111111111100000000000
-00000000011111111111000000000000
-00000000001111111111000000000000
-00000000000111111100000000000000
-00000000000000100000000000000000
- 0
-"""
 
-# Split the data into individual samples
-samples = data_str.strip().split("\n\n")
+def binary_to_one_hot(binary_sequence, label):
+    # Convert the binary sequence to a one-hot encoding
+    one_hot_encoding = [0] * 10
+    one_hot_encoding[label] = 1.
 
-# Initialize empty lists for features (X) and labels (y)
-X = []
-y = []
+    return one_hot_encoding
 
-# Process each sample
-for sample in samples:
-    lines = sample.strip().split("\n")
 
-    # Extract label
-    label = int(lines[-1])
+# Read sequences and labels from file
+with open('file.txt', 'r') as file:
+    lines = file.readlines()
 
-    # Convert binary strings into numerical arrays
-    binary_array = np.array([list(map(int, line.replace("0", "0 ").replace("1", "1 ").split())) for line in lines[:-1]])
+# Assuming labels are provided as [0, 1, 2, ..., 9, 0, 1, ...]
+labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] * (len(lines) // 10)
 
-    # Flatten the 2D array into a 1D array and append to X
-    X.append(binary_array.flatten())
+# Convert sequences to one-hot encoding
+one_hot_data = [binary_to_one_hot(line.strip(), label) for line, label in zip(lines, labels)]
 
-    # Append the label to y
-    y.append(label)
+# Split data into training and testing sets
+split_ratio = 0.8  # 80% training, 20% testing
+split_index = int(len(one_hot_data) * split_ratio)
+
+train_data = one_hot_data[:split_index]
+test_data = one_hot_data[split_index:]
+
+train_labels = labels[:split_index]
+test_labels = labels[split_index:]
+
 
 # Convert lists to NumPy arrays
-X = np.array(X)
-y = np.array(y)
+train_data_np = np.array(train_data)
+test_data_np = np.array(test_data)
+
+# Save NumPy arrays to .npy files
+np.save('train/X_train.npy', train_data_np)
+np.save('test/X_test.npy', test_data_np)
+
+# Save labels as well
+np.save('train/y_train.npy', np.array(train_labels))
+np.save('test/y_test.npy', np.array(test_labels))
 
 
-# Print the shapes of X and y
-print("X shape:", X.shape)
-print("y shape:", y.shape)
-
-# Optionally, save the datasets to files if needed
-np.save("data/feature.npy", X)
-np.save("data/label.npy", y)

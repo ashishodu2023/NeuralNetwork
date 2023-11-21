@@ -6,6 +6,13 @@ def mse(y_true, y_pred):
 def mse_prime(y_true, y_pred):
     return 2 * (y_pred - y_true) / y_pred.size
 
+def mae(y_true, y_pred):
+    errors = np.abs(y_true - y_pred)
+    mae = np.mean(errors)
+    return mae
+
+def mae_prime(y_true, y_pred):
+    return np.sign(y_pred - y_true)
 def sse(y_true, y_pred):
     return 0.5 * np.sum(np.power(y_true - y_pred, 2))
 
