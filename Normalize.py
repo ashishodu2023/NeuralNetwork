@@ -1,4 +1,6 @@
 import numpy as np
+
+# Data Normalization or Standardization with mean and std
 def normalize_data(X):
     mean = np.mean(X, axis=0)
     std = np.std(X, axis=0)

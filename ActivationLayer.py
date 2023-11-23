@@ -1,7 +1,10 @@
+# Import necessary package
 import numpy as np
 from Activations import sigmoid, sigmoid_derivative,softmax
 import logging
 logging.basicConfig(level=logging.INFO)
+
+# Initialize weights with random values
 def initialize_weights(input_size, hidden_size, output_size):
     logging.info("====Inside constructor====")
     np.random.seed(42)
@@ -9,6 +12,7 @@ def initialize_weights(input_size, hidden_size, output_size):
     weights_hidden_output = np.random.randn(hidden_size, output_size)
     return weights_input_hidden, weights_hidden_output
 
+# Forward Propagation
 def forward(X, weights_input_hidden, weights_hidden_output):
     hidden_layer_input = np.dot(X, weights_input_hidden)
     hidden_layer_output = sigmoid(hidden_layer_input)
@@ -18,6 +22,7 @@ def forward(X, weights_input_hidden, weights_hidden_output):
 
     return hidden_layer_output, output_layer_output
 
+# Backward Propagation
 def backward(X, y, hidden_layer_output, output_layer_output, weights_hidden_output):
     output_error = output_layer_output - y
     output_delta = output_error
@@ -27,6 +32,7 @@ def backward(X, y, hidden_layer_output, output_layer_output, weights_hidden_outp
 
     return hidden_delta, output_delta
 
+# Update weights
 def update_weights(X, hidden_layer_output, output_delta, hidden_delta, weights_input_hidden, weights_hidden_output, learning_rate, clip_value=1.0):
     grad_output_weights = hidden_layer_output.T.dot(output_delta)
     grad_input_weights = X.T.dot(hidden_delta)

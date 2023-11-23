@@ -9,9 +9,11 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.decomposition import PCA
 import logging
 
+# Setting logging objects
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 
+# Train
 def train_nn(X, y, hidden_size, output_size, epochs, learning_rate):
     input_size = X.shape[1]
     weights_input_hidden, weights_hidden_output = initialize_weights(input_size, hidden_size, output_size)
@@ -35,6 +37,7 @@ def train_nn(X, y, hidden_size, output_size, epochs, learning_rate):
     return weights_input_hidden, weights_hidden_output
 
 
+# Plot Confusion Matrix
 def plot_confusion_matrix(df_confusion, title='Confusion matrix', cmap='BuGn'):
     plt.matshow(df_confusion, cmap=cmap)
     plt.colorbar()
@@ -49,12 +52,14 @@ def plot_confusion_matrix(df_confusion, title='Confusion matrix', cmap='BuGn'):
     # Predictions
 
 
+# Predictions
 def predict(X, trained_weights_input_hidden, trained_weights_hidden_output):
     _, y_pred = forward(X, trained_weights_input_hidden, trained_weights_hidden_output)
     y_pred_label = np.argmax(y_pred, axis=1)
     return y_pred_label
 
 
+# Get confusion Matrix
 def get_confusion_matrix(y_train, y_pred):
     y = pd.Series(y_train, name='Actual')
     y_pred = pd.Series(y_pred, name='Predicted')
@@ -62,6 +67,7 @@ def get_confusion_matrix(y_train, y_pred):
     return df_confusion
 
 
+# Make Predictions
 def make_predictions(X, y_true, trained_weights_input_hidden,
                      trained_weights_hidden_output, type):
     # Perform predictions on training data
@@ -76,6 +82,7 @@ def make_predictions(X, y_true, trained_weights_input_hidden,
     print(f"The model {type} recall is ={recall_score(y_true, y_pred, average='weighted'):.5f}\n")
 
 
+# Get Principal Component Analysis
 def perform_pca(X_normalized):
     pca = PCA(n_components=0.9)
     # perform PCA on the scaled data
@@ -84,6 +91,7 @@ def perform_pca(X_normalized):
     return X_pca
 
 
+# Driver Code execution
 if __name__ == '__main__':
     # Load npy data from train and test data.
     logging.info("=======Loading train and train label data========")
