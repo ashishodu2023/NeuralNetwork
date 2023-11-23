@@ -1,6 +1,9 @@
 import numpy as np
 from Activations import sigmoid, sigmoid_derivative,softmax
+import logging
+logging.basicConfig(level=logging.INFO)
 def initialize_weights(input_size, hidden_size, output_size):
+    logging.info("====Inside constructor====")
     np.random.seed(42)
     weights_input_hidden = np.random.randn(input_size, hidden_size)
     weights_hidden_output = np.random.randn(hidden_size, output_size)

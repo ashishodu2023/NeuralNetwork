@@ -8,7 +8,7 @@ from Normalize import normalize_data
 from sklearn.metrics import accuracy_score,precision_score,recall_score
 from sklearn.decomposition import PCA
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 def train_nn(X, y, hidden_size, output_size, epochs, learning_rate):
     input_size = X.shape[1]
@@ -108,6 +108,19 @@ def make_predictions_pca_data(X_test_normalized,y_test, trained_weights_input_hi
     print(f"The model  test recall is ={recall_score(y_test, y_test_pred,average='weighted'):.5f}\n")
 
 
+def make_predictions_complete_data(X,y, trained_weights_input_hidden_X, trained_weights_hidden_output_y):
+    # Perform predictions on training data
+    y_pred = predict(X, trained_weights_input_hidden_X, trained_weights_hidden_output_y)
+    # Get Confusion matrix
+    #df_confusion = get_confusion_matrix(y, y_pred)
+    #print("========================Confusion Matrix Complete Data========================\n")
+    #print(df_confusion)
+    print()
+    print(f'The model train accuracy is ={accuracy_score(y, y_pred):.5f}\n')
+    print(f"The model train precision is ={precision_score(y, y_pred,average='weighted'):.5f}\n")
+    print(f"The model  train recall is ={recall_score(y, y_pred,average='weighted'):.5f}\n")
+
+
 if __name__ == '__main__':
     # Load npy data from train and test data.
     logging.info("=======Loading train and train label data========")
@@ -144,6 +157,8 @@ if __name__ == '__main__':
     print()
     logging.info("=======Make Predictions on PCA Data========")
     make_predictions_test_data(X_pca_test, y_test_true, trained_weights_input_hidden_pca, trained_weights_hidden_output_pca)
+
+
 
 
 

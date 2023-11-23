@@ -1,14 +1,17 @@
 import numpy as np
-from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
+import logging
+logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 with open('file.txt','r') as file_obj:
+    logging.info("====Open the file for reading====")
     binary_sequences_with_labels = file_obj.readlines()
 # Split the input into sequences and labels
 binary_sequences_with_labels_dict = dict()
 binary_sequences_with_labels_list =[]
 i = 0
 # iterating until the end of the file
+logging.info("====Starting while loop====")
 while i < len(binary_sequences_with_labels):
     # extracting 32 lines (image matrix)
     data_lines_list = []
@@ -29,21 +32,25 @@ while i < len(binary_sequences_with_labels):
 
     # move to the next block of data for the image matrix and its label
     i += 33
-
+logging.info("====Get data and labels====")
 labels, data_matrix = zip(*binary_sequences_with_labels_list)
 X = np.array(data_matrix)
 y= np.array(labels)
 
-#np.save("train/X.npy")
-#np.save('test/y.npy')
+logging.info("====Saving complete data into data directory====")
+np.save('data/X.npy', X)
+np.save('data/y.npy', y)
+print('The shape of X and y is',X.shape,y.shape)
 
+logging.info("====Split the data into train and test sets====")
 X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2, random_state=42)
-# Save NumPy arrays to .npy files
+print('The shape of Training and Test dataset are', X_train.shape,X_test.shape,y_train.shape,y_test.shape)
+
+logging.info("====Saving data into train and test npy files====")
 np.save('train/X_train.npy', X_train)
 np.save('test/X_test.npy', X_test)
 
 # Save labels as well
 np.save('train/y_train.npy', np.array(y_train))
 np.save('test/y_test.npy', np.array(y_test))
-
 
