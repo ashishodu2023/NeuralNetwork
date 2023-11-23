@@ -7,6 +7,8 @@ import pandas as pd
 from Normalize import normalize_data
 from sklearn.metrics import accuracy_score,precision_score,recall_score
 from sklearn.decomposition import PCA
+import logging
+logging.basicConfig(level=logging.INFO)
 
 def train_nn(X, y, hidden_size, output_size, epochs, learning_rate):
     input_size = X.shape[1]
@@ -108,6 +110,7 @@ def make_predictions_pca_data(X_test_normalized,y_test, trained_weights_input_hi
 
 if __name__ == '__main__':
     # Load npy data from train and test data.
+    logging.info("=======Loading train and train label data========")
     X = np.load('train/X_train.npy')
     y_true = np.load('train/y_train.npy')
     # One-hot encode the labels
@@ -120,20 +123,26 @@ if __name__ == '__main__':
     epochs = 3000  # Increased number of epochs
     learning_rate = 0.001  # Adjusted learning rate
 
+    logging.info("=======Start training neural network========")
     trained_weights_input_hidden, trained_weights_hidden_output = train_nn(X_train_normalized, y_one_hot,
                                                                            hidden_size, output_size, epochs,
                                                                            learning_rate)
+    logging.info("=======Make Predictions on Train Data========")
     make_predictions_train_data(X_train_normalized,y_true, trained_weights_input_hidden, trained_weights_hidden_output)
     print()
     X_test_normalized = normalize_data(np.load('test/X_test.npy'))
     y_test_true = np.load('test/y_test.npy')
+    logging.info("=======Make Predictions on Test Data========")
     make_predictions_test_data(X_test_normalized,y_test_true, trained_weights_input_hidden, trained_weights_hidden_output)
     print()
     X_pca_test=perform_pca(X_test_normalized)
     y_one_hot_test = encode_labels(y_test_true)
+    logging.info("=======Train Model with PCA Data========")
     trained_weights_input_hidden_pca, trained_weights_hidden_output_pca = train_nn(X_pca_test, y_one_hot_test,
                                                                            hidden_size, output_size, epochs,
                                                                            learning_rate)
+    print()
+    logging.info("=======Make Predictions on PCA Data========")
     make_predictions_test_data(X_pca_test, y_test_true, trained_weights_input_hidden_pca, trained_weights_hidden_output_pca)
 
 
